@@ -97,29 +97,35 @@
         let attendance = [];
 
         // INITIALISATION AVEC LIEN DE SECOURS
-        async function initIA() {
-            // Lien CDN alternatif ultra-stable
-            const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-            
-            try {
-                await Promise.all([
-                    faceapi.nets.ssdMobilenetv1.loadFromUri(URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(URL)
-                ]);
-                
-                const saved = localStorage.getItem('face_data');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    labeledDescriptors = parsed.map(d => new faceapi.LabeledFaceDescriptors(d.label, [new Float32Array(Object.values(d.descriptors[0]))]));
-                }
-
-                startCamera();
-            } catch (e) {
-                document.getElementById('loader-text').innerHTML = "<span class='text-red-500'>Erreur de connexion aux serveurs IA.<br>Vérifiez votre internet.</span>";
-                console.error(e);
-            }
+      async function initIA() {
+    // Ce lien est un miroir officiel de confiance qui contourne les blocages GitHub
+    const URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
+    
+    try {
+        console.log("Démarrage du chargement des modèles...");
+        await faceapi.nets.ssdMobilenetv1.loadFromUri(URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
+        
+        console.log("Modèles IA chargés !");
+        
+        // Chargement des données locales
+        const saved = localStorage.getItem('face_data');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            labeledDescriptors = parsed.map(d => new faceapi.LabeledFaceDescriptors(
+                d.label, 
+                [new Float32Array(Object.values(d.descriptors[0]))]
+            ));
         }
+
+        startCamera();
+    } catch (e) {
+        console.error("Erreur détaillée :", e);
+        document.getElementById('loader-text').innerHTML = 
+            "<span class='text-red-500'>L'IA n'arrive pas à télécharger les modèles.<br>Essayez d'actualiser la page (F5).</span>";
+    }
+}
 
         async function startCamera() {
             try {
