@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA Face Scanner Pro - Gestion Scolaire</title>
+    <title>IA Face Scanner - Version Finale</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
@@ -23,12 +23,12 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-slate-800/50 p-6 rounded-[2rem] border border-slate-700">
             <div class="flex items-center gap-4">
-                <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-500/20">
+                <div class="bg-indigo-600 p-3 rounded-2xl">
                     <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight">FACE ID <span class="text-indigo-500">MANAGER</span></h1>
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Identification IA en temps réel</p>
+                    <h1 class="text-2xl font-black tracking-tight">FACE ID <span class="text-indigo-500">PRO</span></h1>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Système de présence autonome</p>
                 </div>
             </div>
             
@@ -40,12 +40,15 @@
 
         <div id="loader" class="fixed inset-0 z-[200] bg-slate-900 flex flex-col items-center justify-center">
             <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p class="font-bold text-indigo-400 animate-pulse">Initialisation de l'Intelligence Artificielle...</p>
+            <p id="loader-text" class="font-bold text-indigo-400 animate-pulse text-center px-4">
+                Connexion aux modèles IA en cours...<br>
+                <span class="text-xs font-normal text-slate-500">(Autorisez la caméra si demandé)</span>
+            </p>
         </div>
 
         <div id="tab-scan" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-6">
-                <div class="relative aspect-video bg-black rounded-[2.5rem] overflow-hidden border-4 border-slate-800 shadow-2xl scanning">
+            <div class="lg:col-span-2 relative">
+                <div class="relative aspect-video bg-black rounded-[2.5rem] overflow-hidden border-4 border-slate-800 scanning shadow-2xl">
                     <video id="video" autoplay playsinline muted class="w-full h-full object-cover"></video>
                     <canvas id="overlay" class="absolute inset-0 w-full h-full"></canvas>
                     
@@ -55,48 +58,35 @@
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-slate-800/50 p-6 rounded-[2rem] border border-slate-700">
-                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Présences du jour</h3>
-                    <div id="mini-log" class="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        </div>
-                </div>
+            <div class="bg-slate-800/50 p-6 rounded-[2rem] border border-slate-700">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Derniers passages</h3>
+                <div id="mini-log" class="space-y-3"></div>
             </div>
         </div>
 
         <div id="tab-admin" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white text-slate-900 p-8 rounded-[2.5rem] shadow-xl">
-                    <h2 class="text-2xl font-black mb-6">Enrôler un nouvel élève</h2>
-                    <div class="space-y-4">
-                        <input type="text" id="new-name" placeholder="Nom complet de l'élève" class="w-full px-6 py-4 rounded-2xl bg-slate-100 border-none outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
-                        
-                        <div class="relative aspect-video bg-slate-200 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300">
-                            <canvas id="capture-canvas" class="w-full h-full object-cover hidden"></canvas>
-                            <div id="capture-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                                <i data-lucide="user" class="w-12 h-12 mb-2 opacity-20"></i>
-                                <p class="text-xs font-bold uppercase">Aperçu de capture</p>
-                            </div>
+                <div class="bg-white text-slate-900 p-8 rounded-[2.5rem]">
+                    <h2 class="text-2xl font-black mb-6">Ajouter un élève</h2>
+                    <input type="text" id="new-name" placeholder="Nom de l'élève" class="w-full px-6 py-4 rounded-2xl bg-slate-100 mb-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                    
+                    <div class="relative aspect-video bg-slate-200 rounded-2xl overflow-hidden mb-6">
+                        <canvas id="capture-canvas" class="w-full h-full object-cover hidden"></canvas>
+                        <div id="capture-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                            <i data-lucide="camera" class="w-12 h-12 opacity-20"></i>
+                            <p class="text-xs font-bold uppercase mt-2">Appuyez sur capturer</p>
                         </div>
+                    </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <button onclick="takeSnapshot()" class="bg-slate-800 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-slate-700 transition-all">
-                                <i data-lucide="camera"></i> CAPTURER
-                            </button>
-                            <button onclick="registerStudent()" class="bg-indigo-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-indigo-500 transition-all">
-                                <i data-lucide="save"></i> ENREGISTRER
-                            </button>
-                        </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="takeSnapshot()" class="bg-slate-800 text-white py-4 rounded-2xl font-black">CAPTURER</button>
+                        <button onclick="registerStudent()" class="bg-indigo-600 text-white py-4 rounded-2xl font-black">ENREGISTRER</button>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/50 p-8 rounded-[2.5rem] border border-slate-700">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-black text-white">Base Élèves</h2>
-                        <input type="text" id="search" onkeyup="updateLists()" placeholder="Rechercher..." class="bg-slate-900 border-none rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div id="admin-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                        </div>
+                    <h2 class="text-2xl font-black mb-6 text-white">Base de données</h2>
+                    <div id="admin-list" class="space-y-2"></div>
                 </div>
             </div>
         </div>
@@ -104,36 +94,46 @@
 
     <script>
         let labeledDescriptors = [];
-        let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
-        let stream = null;
+        let attendance = [];
 
-        // 1. INITIALISATION IA
+        // INITIALISATION AVEC LIEN DE SECOURS
         async function initIA() {
-            const URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
-            await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(URL),
-                faceapi.nets.faceLandmark68Net.loadFromUri(URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(URL)
-            ]);
+            // Lien CDN alternatif ultra-stable
+            const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
             
-            // Charger les descripteurs sauvegardés
-            const savedData = localStorage.getItem('labeledDescriptors');
-            if (savedData) {
-                const parsed = JSON.parse(savedData);
-                labeledDescriptors = parsed.map(d => new faceapi.LabeledFaceDescriptors(d.label, [new Float32Array(Object.values(d.descriptors[0]))]));
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(URL)
+                ]);
+                
+                const saved = localStorage.getItem('face_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    labeledDescriptors = parsed.map(d => new faceapi.LabeledFaceDescriptors(d.label, [new Float32Array(Object.values(d.descriptors[0]))]));
+                }
+
+                startCamera();
+            } catch (e) {
+                document.getElementById('loader-text').innerHTML = "<span class='text-red-500'>Erreur de connexion aux serveurs IA.<br>Vérifiez votre internet.</span>";
+                console.error(e);
             }
-
-            document.getElementById('loader').classList.add('hidden');
-            startCamera();
         }
 
-        // 2. GESTION CAMÉRA
         async function startCamera() {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-            document.getElementById('video').srcObject = stream;
+            try {
+                const video = document.getElementById('video');
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                document.getElementById('loader').classList.add('hidden');
+                lucide.createIcons();
+            } catch (e) {
+                alert("Erreur : La caméra est bloquée ou non détectée.");
+            }
         }
 
-        // 3. CAPTURE & ENREGISTREMENT
+        // CAPTURE ET ENREGISTREMENT
         function takeSnapshot() {
             const canvas = document.getElementById('capture-canvas');
             const video = document.getElementById('video');
@@ -150,18 +150,18 @@
             if(!name || canvas.classList.contains('hidden')) return alert("Nom + Capture requis");
 
             const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
-            if(!detection) return alert("IA : Visage non trouvé sur la photo !");
+            if(!detection) return alert("IA : Visage non détecté !");
 
             labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(name, [detection.descriptor]));
-            localStorage.setItem('labeledDescriptors', JSON.stringify(labeledDescriptors));
+            localStorage.setItem('face_data', JSON.stringify(labeledDescriptors));
             
-            alert(`Succès : ${name} est maintenant dans la base.`);
+            alert(`${name} enregistré avec succès !`);
             document.getElementById('new-name').value = '';
             canvas.classList.add('hidden');
             updateLists();
         }
 
-        // 4. RECONNAISSANCE LIVE
+        // BOUCLE DE RECONNAISSANCE
         const video = document.getElementById('video');
         video.addEventListener('play', () => {
             const overlay = document.getElementById('overlay');
@@ -173,82 +173,52 @@
 
                 const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
                 const resized = faceapi.resizeResults(detections, displaySize);
+                const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
                 
-                const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
-                const results = resized.map(d => matcher.findBestMatch(d.descriptor));
-
                 const ctx = overlay.getContext('2d');
                 ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-                results.forEach((result, i) => {
-                    const box = resized[i].detection.box;
-                    const isMatch = result.label !== 'unknown';
+                resized.forEach((d, i) => {
+                    const result = matcher.findBestMatch(d.descriptor);
+                    const box = d.detection.box;
                     
-                    ctx.strokeStyle = isMatch ? '#10b981' : '#ef4444';
-                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = result.label !== 'unknown' ? '#10b981' : '#ef4444';
+                    ctx.lineWidth = 3;
                     ctx.strokeRect(box.x, box.y, box.width, box.height);
-                    
-                    if(isMatch) {
-                        markAttendance(result.label);
-                    }
+
+                    if(result.label !== 'unknown') markAttendance(result.label);
                 });
-            }, 600);
+            }, 1000);
         });
 
-        // 5. LOGIQUE MÉTIER
         function markAttendance(name) {
-            const today = new Date().toLocaleDateString('fr-FR');
-            if(!attendance.find(a => a.name === name && a.date === today)) {
-                attendance.push({ name, date: today, time: new Date().toLocaleTimeString('fr-FR') });
-                localStorage.setItem('attendance', JSON.stringify(attendance));
-                
-                const notif = document.getElementById('notif');
+            const date = new Date().toLocaleDateString();
+            if(!attendance.find(a => a.name === name && a.date === date)) {
+                attendance.push({ name, date, time: new Date().toLocaleTimeString() });
                 document.getElementById('notif-name').innerText = name;
-                notif.classList.remove('hidden');
-                setTimeout(() => notif.classList.add('hidden'), 3000);
+                document.getElementById('notif').classList.remove('hidden');
+                setTimeout(() => document.getElementById('notif').classList.add('hidden'), 3000);
                 updateLists();
             }
         }
 
         function updateLists() {
-            const search = document.getElementById('search').value.toLowerCase();
-            const today = new Date().toLocaleDateString('fr-FR');
-
-            // Liste Admin
-            document.getElementById('admin-list').innerHTML = labeledDescriptors
-                .filter(d => d.label.toLowerCase().includes(search))
-                .map(d => `
-                <div class="flex justify-between items-center bg-slate-700/50 p-4 rounded-2xl mb-2">
-                    <span class="font-bold">${d.label}</span>
-                    <button onclick="deleteStudent('${d.label}')" class="text-red-400 hover:text-red-200"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            document.getElementById('admin-list').innerHTML = labeledDescriptors.map(d => `
+                <div class="flex justify-between bg-slate-700/50 p-3 rounded-xl">
+                    <span class="font-bold text-sm">${d.label}</span>
                 </div>`).join('');
 
-            // Log de présence
-            document.getElementById('mini-log').innerHTML = attendance
-                .filter(a => a.date === today)
-                .slice().reverse().map(a => `
-                <div class="flex items-center gap-3 bg-slate-900/50 p-4 rounded-2xl border-l-4 border-emerald-500">
-                    <div class="font-black text-white text-sm">${a.name}</div>
-                    <div class="text-[10px] text-slate-500 ml-auto uppercase font-bold">${a.time}</div>
-                </div>`).join('') || '<p class="text-center text-slate-600 py-10">Aucun élève détecté</p>';
-            
-            lucide.createIcons();
+            document.getElementById('mini-log').innerHTML = attendance.slice(-5).reverse().map(a => `
+                <div class="bg-slate-900/50 p-3 rounded-xl border-l-4 border-indigo-500 text-xs">
+                    <b>${a.name}</b> - ${a.time}
+                </div>`).join('');
         }
 
         function switchTab(tab) {
             document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
             document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('btn-scan').classList.toggle('bg-indigo-600', tab === 'scan');
-            document.getElementById('btn-admin').classList.toggle('bg-indigo-600', tab === 'admin');
-            updateLists();
-        }
-
-        function deleteStudent(label) {
-            if(confirm("Supprimer l'empreinte faciale de cet élève ?")) {
-                labeledDescriptors = labeledDescriptors.filter(d => d.label !== label);
-                localStorage.setItem('labeledDescriptors', JSON.stringify(labeledDescriptors));
-                updateLists();
-            }
+            document.getElementById('btn-scan').className = tab === 'scan' ? 'px-6 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white' : 'px-6 py-2 rounded-xl text-sm font-bold text-slate-400';
+            document.getElementById('btn-admin').className = tab === 'admin' ? 'px-6 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white' : 'px-6 py-2 rounded-xl text-sm font-bold text-slate-400';
         }
 
         initIA();
